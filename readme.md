@@ -1,6 +1,6 @@
 # Typescript Simplified   <img src = "./uploads/TypeScript.png" width = "60" height = "60" style = "border-radius: 20px"> 
 
-### *By reading and then having practical implementation of these concepts you can learn typescript, easiest guide you'll find to learn, understand & implement typescript!*
+### *By reading and then having practical implementation of these concepts you can learn typescript, an easiest guide you'll find to learn, understand & implement typescript!*
 
 ⚠️ **Before you continue make sure that you have:**
 
@@ -147,6 +147,56 @@
 + Typing RDB query results 
 
 + Error handling patterns in **`TS`**
+
+
+
+<hr style = "margin-top:40px; padding:1px; background:white;">
+<hr style = " padding:1px; background:white;">
+
+<span style = "font-size:36px;"> DETAILED TUTORIAL OF EACH CONCEPT</span>
+<hr style = " padding:1px; background:white;">
+<hr style = "margin-bottom:40px; padding:1px; background:white;">
+
+<span style = "font-size:25px;"> Concept 1:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`Type Annotations`** (variables, params, return types)
+
+<p style = " font-size:16px;">In Typescript you've to specify the types for variables, function parameters & returns (fun()=>returnedValue). Syntax of type anotating is:</p>
+
+```javascript
+// variable example:
+
+const name: string = ""; 
+
+//:string is type annotation for variable name (which is now of string type!)
+```
+
+```javascript
+// parameters example:
+
+const myFun = (name:string, age: number)=> {
+    //:string is type annotation for name parameter & :number is type annotation for age parameter
+} 
+```
+
+```javascript
+// return type example:
+
+const myFun = (name:string, age: number) : string => {
+
+    return `Hi Mr. ${name}, your age is ${age}.`
+
+    //Here function is bound to return a string only.
+} 
+
+//:string is type annotation which this function will return!
+```
+
+<span style = "font-size:25px;"> Concept 2:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`Type Annotations`** (variables, params, return types)
 
 
 
