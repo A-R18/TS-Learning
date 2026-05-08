@@ -687,6 +687,443 @@ function getUser(): [User | null, string | null] {
 
 
 
+<span style = "font-size:25px;"> Concept 15:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`Functions in TypeScript`** (In TS we've to define a function's contract — what goes in, what comes out, no surprises like JS.)
+
+Usage example:
+```javascript
+function createUser(name: string, age: number): boolean {
+  // TS enforces: name must be string, age must be number
+  // return value must be boolean
+  return true;
+}
+
+// Arrow function (same rules):
+
+const createUser = (name: string, age: number): boolean => {
+  return true;
+};
+
+```
+
+<span style = "font-size:25px;"> Concept 16:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`Optional Parameters`** (? is used with a parameter)
+
+Usage example:
+```javascript
+function getUsers(limit?: number): void {
+  // limit is number | undefined
+  // caller can pass it or not
+}
+
+getUsers(10); // allowed
+getUsers();   // allowed
+```
+
+Optional parameters must always come after required ones, this is because JS maintains position of parameters:
+
+Usage example:
+```javascript
+function getUsers(filter: string, limit?: number) {} // allowed
+function getUsers(limit?: number, filter: string) {} // TS ERROR
+```
+
+**Default Parameters**
+
+Provide a fallback value when none is passed:
+
+Usage example:
+```javascript
+function getUsers(limit: number = 10): void {
+  // if caller passes nothing, limit = 10
+}
+
+getUsers();    // limit = 10
+getUsers(25);  // limit = 25
+```
+
+
+<span style = "font-size:25px;"> Concept 17:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`Function Overloads`** 
+
+(Same function name, different parameter combinations, different return types depending on input)
+
+Usage example:
+```javascript
+// Overload signatures — define all valid combinations
+
+function formatId(id: number): string;
+function formatId(id: string): number;
+
+// Implementation signature — handles all cases
+
+function formatId(id: number | string): string | number {
+  if (typeof id === "number") return `user_${id}`;
+  return parseInt(id);
+}
+```
+
+**Without Overload signatures:**
+
+Usage example:
+```javascript
+function formatInput(arg: number | string): string | number {
+  if (typeof arg === 'number') return `${arg}`;
+  return parseInt(arg);
+}
+
+const result = formatInput(42);
+
+// TS thinks: result is string | number — imprecise
+
+result.toUpperCase(); 
+
+// TS ERROR — might be number
+```
+
+**With Overload Signatures**
+
+Usage example:
+```javascript
+function formatInput(arg: number): string;
+
+function formatInput(arg: string): number;
+
+function formatInput(arg: number | string): string | number {
+  if (typeof arg === 'number') return `${arg}`;
+  return parseInt(arg);
+}
+
+const result = formatInput(42);
+// TS knows: result is string — precise
+result.toUpperCase();
+ // — TS is certain it's a string
+```
+
+
+
+
+
+<span style = "font-size:25px;"> Concept 18:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`void`** vs **`never`** in Functions
+
+Usage example:
+```javascript
+// void — completes, returns nothing useful
+function logError(msg: string): void {
+  console.error(msg);
+}
+
+// never — never completes
+function throwError(msg: string): never {
+  throw new Error(msg);
+}
+
+// Combined — real Express pattern
+function validateToken(token: string | undefined): void {
+  if (!token) throwError("No token provided"); 
+  // never returns
+  // TS knows: if we reach here, token is definitely string
+}
+```
+
+<span style = "font-size:25px;"> Concept 19:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`Typing Callbacks & Higher-Order Functions`** 
+
+(A function that receives another function as an argument — both need to be typed.)
+
+**Typing a callback:**
+
+Usage example:
+```javascript
+// The callback type: takes a string, returns void
+
+function processUser(id: number, callback: (name: string) => void): void {
+  const name = db.getUserName(id);
+  callback(name);
+}
+
+// Usage
+processUser(1, (name) => {
+  console.log(name);
+// TS knows name is string — inferred from callback type
+});
+```
+
+**Higher-order functions:**
+
+Usage example:
+```javascript
+// A function that returns a function
+function createMultiplier(factor: number): (value: number) => number {
+  return (value) => value * factor;
+}
+
+const double = createMultiplier(2);
+double(5); // 10 — TS knows this returns number
+```
+
+**HOF That TAKES a Function**
+
+Usage example:
+```javascript
+//↓ this parameter is a function
+
+function run(callback: (name: string) => void): void {
+  callback("john");
+
+   // call the function passed in
+}
+```
+
+**Explanation:**
+
++ run takes one argument called callback
++ callback is a function that accepts a string and returns void
++ run itself returns void
+
+
+Usage example:
+```javascript
+run((name) => {
+  console.log(name);
+   // TS already knows name is string — already specified above
+});
+```
+
+<span style = "font-size:25px;"> Phase 3 Map:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+
+
+`Typed params & returns   → define the contract at both ends`
+
+`Optional parameters      → caller can skip them — type becomes T | undefined`
+
+`Default parameters       → fallback value — no ? needed`
+
+`Function overloads       → same name, multiple valid signatures`
+
+`void vs never            → completes-but-returns-nothing vs never-completes`
+
+`Callbacks & HOF          → type the function being passed, type what it returns`
+
+
+
+<span style = "font-size:25px;"> Concept 20:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`What Generics Are & Why They Exist`** 
+
+(generics are like a type placeholder — like a variable but for types.)
+
+example:
+```javascript
+function getFirstItem <T> (arr: T[]): T {
+  return arr[0];
+}
+```
+
+**T is not a real type. It's a slot — TS fills it in when you call the function:**
+
+
+Usage example:
+```javascript
+
+getFirstItem([1, 2, 3]);        
+  // T = number → returns number
+
+getFirstItem(["a", "b", "c"]);   
+  // T = string → returns string
+
+getFirstItem([{id: 1}, {id: 2}]); 
+  // T = {id: number} → returns {id: number}
+
+```
+
+**One function. Works for every type. Full type safety preserved.**
+
+<p>T is just a convention — stands for "Type." You can name it anything: T, K, V, TData, TResponse.</p>
+
+
+
+<span style = "font-size:25px;"> Concept 21:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`Generic Functions:`**
+
+
+Usage example:
+```javascript
+// Single generic
+function wrap<T>(value: T): T[] {
+  return [value];
+}
+
+wrap(42);      // returns number[]
+wrap("hello"); // returns string[]
+```
+
+**Multiple generics:**
+
+Usage example:
+```javascript
+function pair<K, V>(key: K, value: V): [K, V] {
+  return [key, value];
+}
+
+pair("id", 42);     
+  // returns [string, number]
+pair("name", "john"); 
+  // returns [string, string]
+
+```
+
+<span style = "font-size:25px;"> Concept 22:</pan>
+<hr style = " padding:0.01px; background:grey;">
+
+**` Generic Interfaces & Types:`**
+
+example:
+```javascript
+
+interface ApiResponse<T> {
+  data: T;
+  status: number;
+  message: string;
+}
+
+``` 
+
+**Using it with any data shape:**
+
+
+Usage example:
+```javascript
+// User response
+const userResponse: ApiResponse<User> = {
+  data: { id: 1, name: "john", email: "j@j.com" },
+  status: 200,
+  message: "success"
+};
+
+// String response
+const errorResponse: ApiResponse<string> = {
+  data: "something went wrong",
+  status: 400,
+  message: "error"
+};
+
+```
+
+<span style = "font-size:25px;"> Concept 23:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**` Generic Constraints `** (extends)
+
+**Problem which occurs:**
+
+
+ example:
+```javascript
+function getLength<T>(value: T): number {
+  return value.length; 
+  //  TS ERROR — T might be number, boolean, anything
+}
+```
+
+**TS doesn't know T has a .length property. It could be anything.**
+
+**The fix Constrain T**
+
+example:
+```javascript
+function getLength<T extends { length: number }>(value: T): number {
+  return value.length; 
+  //  — TS knows T has .length
+}
+
+getLength("hello");     
+//  string has .length
+getLength([1, 2, 3]);   
+//  array has .length
+getLength(42);          
+//  TS ERROR — number has no .length
+```
+
+**Constraining to an interface:**
+
+Usage example:
+```javascript
+interface HasId {
+  id: number;
+}
+
+function logId<T extends HasId>(entity: T): void {
+  console.log(entity.id); 
+  //  guaranteed to exist
+}
+
+logId({ id: 1, name: "john" }); 
+// 
+logId({ name: "john" });        
+//  TS ERROR — no id property
+```
+
+
+<span style = "font-size:25px;"> Concept 24:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`Default Generic Types`**
+ (just like default parameters in functions  generics can have defaults:)
+
+Usage example:
+```javascript
+
+interface ApiResponse <T = string> {
+  data: T;
+  status: number;
+}
+
+// Without specifying T — defaults to string
+
+const response: ApiResponse = {
+  data: "success message",
+  status: 200
+};
+
+// Specifying T explicitly
+const response: ApiResponse <User> = {
+  data: { id: 1, name: "john", email: "j@j.com" },
+  status: 200
+};
+
+```
+
+<span style = "font-size:25px;"> Phase 4 Map:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+`What generics are    → type placeholders filled at call time`
+
+`Generic functions    → write once, works for any type`
+
+`Generic interfaces   → one interface, infinite type variations`
+
+`Constraints          → T must have at least these properties`
+
+`Default generics     → fallback type when none is specified`
+
+
 
 
 
