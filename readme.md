@@ -1125,27 +1125,649 @@ const response: ApiResponse <User> = {
 
 
 
+<span style = "font-size:25px;"> Concept 25:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`typeof`** Narrowing 
+
+JS example:
+```javascript
+function process(value: string | number): void {
+  if (typeof value === "string") {
+    value.toUpperCase(); 
+    //  TS knows it's string here
+  } else {
+    value.toFixed(2); 
+    //  TS knows it's number here
+  }
+}
+```
+
+**TS reads typeof check and narrows the type inside each block.**
+
+TS example:
+```javascript
+function handleId(id: string | number): string {
+  if (typeof id === "number") {
+    return `user_${id}`;
+  }
+  return id.toUpperCase();
+}
+```
+
+<span style = "font-size:25px;"> Concept 26:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`instanceof`** Narrowing 
+
+**It is used when working with classes and objects — not primitives.**
+
+
+Usage example:
+```javascript
+
+class ApiError {
+  message: string;
+  statusCode: number;
+  constructor(message: string, statusCode: number) {
+    this.message = message;
+    this.statusCode = statusCode;
+  }
+}
+
+
+class ValidationError {
+  field: string;
+  constructor(field: string) {
+    this.field = field;
+  }
+}
+
+
+function handleError(error: ApiError | ValidationError): void {
+  if (error instanceof ApiError) {
+    console.log(error.statusCode); 
+    //  TS knows it's ApiError
+  } else {
+    console.log(error.field); 
+    //  TS knows it's ValidationError
+  }
+}
+
+```
+
+
+<span style = "font-size:25px;"> Concept 27:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`in`**  Operator Narrowing 
+
+**It is used when working with plain objects, not class instances. Checks if a property exists on an object.**
+
+Usage example:
+```javascript
+
+interface Admin {
+  role: string;
+  permissions: string[];
+}
+
+interface Guest {
+  sessionId: string;
+}
+
+
+function handleUser(user: Admin | Guest): void {
+  if ("permissions" in user) {
+    console.log(user.permissions);
+     // TS knows it's Admin
+  } else {
+    console.log(user.sessionId);
+     // TS knows it's Guest
+  }
+}
+
+```
+
+
+**in = "Does this property exist on this object?"**
+
+
+<span style = "font-size:25px;"> Concept 28:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`Custom Type Guard Functions`** 
+
+**Sometimes typeof, instanceof, and in aren't enough. We need custom logic to determine a type.**
+
+Problem:
+```javascript
+
+function processUser(user: Admin | Guest): void {
+  if (complexValidation(user)) {
+    user.permissions; 
+
+    //  TS still doesn't know — it can't read your logic
+  }
+}
+
+```
+
+Solution:
+```javascript
+
+//  user is Admin" — called a type predicate
+
+function isAdmin(user: Admin | Guest): user is Admin {
+  return "permissions" in user;
+}
+
+function processUser(user: Admin | Guest): void {
+  if (isAdmin(user)) {
+    user.permissions; 
+    // TS now knows — isAdmin proved it
+  }
+}
+
+```
+
+
+<span style = "font-size:25px;"> Concept 29:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`Discriminated Unions`** 
+
+**Add a common property to each type in a union — use that property to tell them apart.**
+
+
+Problem without it:
+```javascript
+
+interface Circle { radius: number; }
+interface Square { side: number; }
+
+function getArea(shape: Circle | Square): number {
+  // How do we know which one it is?
+  // No shared property to check
+}
+
+```
+
+
+Fix of this problem:
+```javascript
+
+interface Circle {
+  kind: "circle"; // discriminant — unique literal type
+  radius: number;
+}
+
+interface Square {
+  kind: "square"; // discriminant — unique literal type
+  side: number;
+}
+
+function getArea(shape: Circle | Square): number {
+  switch (shape.kind) {
+    case "circle": return Math.PI * shape.radius ** 2; 
+    // TS knows it's Circle
+    case "square": return shape.side ** 2;             
+    // TS knows it's Square
+  }
+}
+
+```
+
+<span style = "font-size:25px;"> Phase 5 map:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+
+`typeof narrowing       → for primitives — string, number, boolean
+`
+
+`instanceof narrowing   → for class instances
+`
+
+`in narrowing           → for plain objects — check property existence`
+
+
+`Custom type guards     → custom logic + type predicate (is keyword)`
+
+`Discriminated unions   → shared literal property tells types apart`
+
+
+<span style = "font-size:25px;"> Concept 36:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`Partial<T>`** 
+
+**When updating a user — you don't always send every field. Only the changed ones.**
+
+Usage example:
+```javascript
+
+// Without Partial — you'd have to redefine a whole new interface
+
+interface UpdateUser {
+  id?: number;
+  name?: string;
+  email?: string;
+  password?: string;
+  role?: string;
+}
+
+// With Partial — TS does it for you
+
+type UpdateUser = Partial<User>;
+
+// Every property becomes optional automatically
+
+```
+
+
+<span style = "font-size:25px;"> Concept 37:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`Required<T>`**
+
+**The exact opposite of Partial. Forces every property to be present, even optional ones.**
+
+
+Usage example:
+```javascript
+
+interface Config {
+  host?: string;
+  port?: number;
+  timeout?: number;
+}
+
+type StrictConfig = Required<Config>;
+// host, port, timeout — all now mandatory
+
+```
+
+<span style = "font-size:25px;"> Concept 38:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`Readonly<T>`** 
+
+**Prevents any property from being modified after creation.**
+
+
+Usage example:
+```javascript
+
+type FrozenUser = Readonly<User>;
+
+const user: FrozenUser = {
+  id: 1,
+  name: "john",
+  email: "j@j.com",
+  password: "hashed",
+  role: "admin"
+};
+
+user.name = "jane"; 
+
+// TS ERROR — all properties are readonly
+
+```
+
+<span style = "font-size:25px;"> Concept 39:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`Pick<T, K>`** 
+
+**Having a full interface but only need specific properties from it.**
+
+Usage example:
+```javascript
+
+// Only need id and name — not the full User
+type UserPreview = Pick<User, "id" | "name">;
+
+// Equivalent to writing:
+interface UserPreview {
+  id: number;
+  name: string;
+}
+
+```
+
+<span style = "font-size:25px;"> Concept 40:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`Omit<T, K>`** 
+
+**Opposite of Pick. Take everything except specified properties.**
+
+
+Usage example:
+```javascript
+
+// Everything except password
+
+type SafeUser = Omit<User, "password">;
+
+// Equivalent to:
+
+interface SafeUser {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+}
+
+```
+
+
+<span style = "font-size:25px;"> Concept 41:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`Record <K, V>`** 
+
+
+**Used when we create an object type where you know the key type and value type — but not specific key names.**
+
+
+Usage example:
+```javascript
+
+// An object where every key is a string and every value is a number
+
+type ScoreBoard = Record<string, number>;
+
+const scores: ScoreBoard = {
+  john: 95,
+  jane: 87,
+  alex: 91
+};
+
+```
+
+
+Usage example:
+```javascript
+
+type Role = "admin" | "user" | "guest";
+
+type RolePermissions = Record<Role, string[]>;
+
+const permissions: RolePermissions = {
+  admin: ["read", "write", "delete"],
+  user: ["read"],
+  guest: []
+  // Missing any role → TS ERROR
+};
+
+```
+
+<span style = "font-size:25px;"> Concept 42:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`ReturnType<T> & Parameters<T>`** 
+
+**ReturnType<T> — extract what a function returns:**
+
+Usage example:
+```javascript
+
+function getUser(): { id: number; name: string } {
+  return { id: 1, name: "john" };
+}
+
+type UserResult = ReturnType<typeof getUser>;
+
+
+// UserResult = { id: number; name: string }
+// You didn't need to define this separately
+
+```
+
+**Parameters T extract a function's parameter types:**
+
+Usage example:
+```javascript
+
+function createUser(name: string, age: number, role: string): void {}
+
+type CreateUserParams = Parameters<typeof createUser>;
+
+// CreateUserParams = [string, number, string]
+// A tuple of all parameter types
+
+```
+
+**ReturnType T = "Give me the type that T returns."**
+
+**ParametersT = "Give me the types of T's parameters as a tuple."**
+
+<span style = "font-size:25px;"> Phase 6 Map:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**Partial < T >      → all properties optional**
+
+**Required < T >     → all properties mandatory**
+
+**Readonly < T >     → all properties locked**
+
+**Pick<T, K>      → only these properties**
+
+**Omit<T, K>      → everything except these**
+
+**Record<K, V>    → object with typed keys and values**
+
+**ReturnType< T >   → extract return type from function**
+
+**Parameters < T >   → extract parameter types from function**
 
 
 
 
 
+<span style = "font-size:25px;"> Concept 43:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`ES Modules in TypeScript`** 
+
+**TS uses ES Module syntax, same as modern JS**
+
+
+JS example:
+```javascript
+
+// Importing
+
+import express from "express";
+import { Router } from "express";
+import type { Request, Response } from "express"; // type-only import
+
+// Exporting
+
+export const PORT = 3000;
+export function createServer() { ... }
+export default app;
+
+```
+
+**import type, what is it?**
+
+Usage example:
+```javascript
+
+import type { Request, Response } from "express";
+
+```
+
+
+<span style = "font-size:25px;"> Concept 44:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`@types Packages`** 
+
+Usage example:
+```javascript
+
+npm install --save-dev @types/express
+npm install --save-dev @types/node
+npm install --save-dev @types/mysql2
+
+```
+
+
+After installing — TS immediately knows:
+
++ What `Request` looks like
+
++ What `Response` looks like
+
++ What `app.get()` expects
+
++ What `next()` does
+
+
+**Three situations exist in TS**
+
+
+Usage example:
+```javascript
+
+// 1. Package has built-in types — nothing needed
+
+import Zod from "zod"; 
+// zod ships its own types
+
+// 2. Package needs @types — install separately
+
+import express from "express"; 
+// needs @types/express
+
+// 3. Package has no types anywhere — you write them yourself
+
+import oldPackage from "old-package";
+ // no types exist — your job now
+
+```
+
+
+<span style = "font-size:25px;"> Concept 45:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`.d.ts`** Declaration Files
+
+Usage example:
+```javascript
+
+// user.d.ts — pure type information
+declare interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+declare function getUser(id: number): User;
+
+```
+
+When to Write Them?
+
+**A situation: JS package with no types:**
+
+Usage example:
+```javascript
+
+// no @types/old-package exists
+// you create: old-package.d.ts
+
+declare module "old-package" {
+  export function doSomething(value: string): boolean;
+  export const version: string;
+}
+
+```
+
+
+**Now TS understands old-package completely.**
+
+**Another situation: If there are JS files in a TS project:**
+
+
+Usage example:
+```javascript
+
+// legacy.js — old file you can't convert yet
+
+// legacy.d.ts — type cover for it
+
+declare function processData(input: any): string;
+
+```
+
+
+<span style = "font-size:25px;"> Concept 46:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`tsconfig.json`** 
+
+Usage example:
+```javascript
+
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  }
+}
+
+```
+
+**Every option explained:**
+
+| Option          | What It Does                                                              |
+|-----------------|---------------------------------------------------------------------------|
+| target          | Which JS version to compile to — ES2020 for modern Node                   |
+| module          | Module system — commonjs for Node.js                                     |
+| outDir          | Where compiled JS goes — keep it in /dist                                |
+| rootDir         | Where your TS source lives — keep it in /src                             |
+| strict          | Enables all strict type checks — always true in production                |
+| esModuleInterop | Lets you import express from "express" instead of import * as express    |
+| skipLibCheck    | Skips type checking of .d.ts files — speeds up compilation               |
 
 
 
+**strict: true — What It Actually Enables**
+
+**One flag — enables all of these simultaneously:**
 
 
+`strictNullChecks      → null and undefined are not assignable to other types`
 
 
+`strictFunctionTypes   → stricter function type checking`
 
 
+`noImplicitAny         → variables can't silently become any`
 
 
+`strictPropertyInitialization → class properties must be initialized`
+
+<span style = "font-size:25px;"> Phase 7 Map:</span>
+<hr style = " padding:0.01px; background:grey;">
 
 
+`ES Modules       → import/export syntax, import type for type-only imports`
 
+`@types packages  → type definitions for JS libraries`
 
+`.d.ts files      → pure type declarations, no implementation`
 
+`tsconfig.json    → compiler control — strict, target, module, paths`
 
 
 
