@@ -9,7 +9,7 @@
 - You have gone through the reasons and shortcomings due to which TS was made
 ```
 
-` This tutorial divides Typescript in 9 sections each of them dependent on prevoius one, tailored in a way so that concepts will be easily absorbable.`
+` This tutorial divides Typescript in 9 phases each of them dependent on prevoius one, tailored in a way so that concepts will be easily absorbable.`
 
 ## PHASES: 
 
@@ -157,7 +157,7 @@
 <hr style = " padding:1px; background:white;">
 <hr style = "margin-bottom:40px; padding:1px; background:white;">
 
-<span style = "font-size:25px;"> **Concept 1**:</span>
+<span style = "font-size:25px;"> **Concept 1 (Start of the Phase 1; Type system [Core])**:</span>
 <hr style = " padding:0.01px; background:grey;">
 
 **`Type Annotations`** (variables, params, return types)
@@ -436,7 +436,7 @@ let userStatus: Status = "active";
 
 
 
-<span style = "font-size:25px;"> Concept 9:</span>
+<span style = "font-size:25px;"> Concept 9: (Start of the PHASE 2 Structuring Data:)</span>
 <hr style = " padding:0.01px; background:grey;">
 
 **`Interfaces`** (makes sure every user object  must have these exact properties with these exact types.)
@@ -455,14 +455,14 @@ const user: User = {
   email: "john@example.com"
 };
 ```
-Interface strictly ensures that mentioned properties are not missed, wrongly typed, or any extra properties are injected.
+Interface strictly ensures that mentioned properties are not missed, wrongly typed, or any extra properties are not injected.
 
 
 
 <span style = "font-size:25px;"> Concept 10:</span>
 <hr style = " padding:0.01px; background:grey;">
 
-**`type`** vs **`interface`** (variables, params, return types)
+**`type`** vs **`interface`** 
 
 **`⚠️ Important`:** 
 
@@ -498,11 +498,11 @@ The real differences:
 
 
 
-Declaration merging — only interfaces can do this:
+Declaration merging can only be done by interfaces:
 
 
 
-Usage example:
+example:
 
 ```javascript
 interface User { id: number; }
@@ -510,8 +510,7 @@ interface User { name: string; }
  // TS merges both — valid
 
 type User = { id: number; }
-type User = { name: string; } 
-// TS ERROR — duplicate identifier
+type User = { name: string; }  // TS ERROR — duplicate identifier
 ```
 
 <span style = "font-size:25px;"> Concept 11:</span>
@@ -551,8 +550,7 @@ interface User {
 
 const user: User = { id: 1, name: "john" };
 user.name = "jane"; //  allowed
-user.id = 99;      
- //  TS ERROR — id is readonly
+user.id = 99;      //  TS ERROR — id is readonly
 ```
 
 `readonly` = "set once, never again."
@@ -561,7 +559,7 @@ user.id = 99;
 <span style = "font-size:25px;"> CONCEPT 13  :</span>
 <hr style = " padding:0.01px; background:grey;">
 
-**`Index Signatures`** (Sometimes you don't know all the property names in advance — like storing dynamic query params or config objects.)
+**`Index Signatures`** (Sometimes you don't know all the property names in advance i.e. like storing dynamic query parameters or config objects.)
 
 
 Usage example:
@@ -597,6 +595,8 @@ interface User {
   address: Address; 
   // nested interface
 }
+
+//doing same in single object:
 
 const user: User = {
   id: 1,
@@ -641,15 +641,17 @@ const ids: Array<number> = [1, 2, 3];
 Usage example of arrays of objects:
 ```javascript
 
-// Two equivalent syntaxes
-const ids: number[] = [1, 2, 3];
-const ids: Array<number> = [1, 2, 3]; // generic syntax — you'll understand this in Phase 4
+const users: User[] = [
+  { id: 1, name: "john", email: "j@j.com" },
+  { id: 2, name: "jane", email: "a@a.com" }
+];
+
 ```
 
 Tuples: "An array with fixed length and fixed types at each position"
 
 
-Usage example:
+example:
 ```javascript
 const entry: [number, string] = [1, "john"];
 
@@ -659,16 +661,17 @@ entry[2] // TS ERROR — tuple only has 2 positions
 
 //Function based example:
 
-// A function returning both a value and an error — like Go-style error handling
+// A function returning both a value and an error
 function getUser(): [User | null, string | null] {
 
   // returns [user, null] on success
+  // OR
   // returns [null, errorMessage] on failure
 }
 ```
 
 
-<span style = "font-size:25px;"> Phase 2 Map:</span>
+<span style = "font-size:25px;"> Phase 2 (Structuring Data) Map:</span>
 <hr style = " padding:0.01px; background:grey;">
 
 `Interface          → contract for object shape`
@@ -687,12 +690,12 @@ function getUser(): [User | null, string | null] {
 
 
 
-<span style = "font-size:25px;"> Concept 15:</span>
+<span style = "font-size:25px;"> Concept 15: (Start of the Phase 3: Functions in Typescript) </span>
 <hr style = " padding:0.01px; background:grey;">
 
 **`Functions in TypeScript`** (In TS we've to define a function's contract — what goes in, what comes out, no surprises like JS.)
 
-Usage example:
+example:
 ```javascript
 function createUser(name: string, age: number): boolean {
   // TS enforces: name must be string, age must be number
@@ -724,7 +727,7 @@ getUsers(10); // allowed
 getUsers();   // allowed
 ```
 
-Optional parameters must always come after required ones, this is because JS maintains position of parameters:
+**`Note ⚠️:`** Optional parameters must always come after required ones, this is because JS maintains position of parameters:
 
 Usage example:
 ```javascript
@@ -734,7 +737,7 @@ function getUsers(limit?: number, filter: string) {} // TS ERROR
 
 **Default Parameters**
 
-Provide a fallback value when none is passed:
+When we provide a fallback value when none of the values is passed:
 
 Usage example:
 ```javascript
@@ -744,6 +747,7 @@ function getUsers(limit: number = 10): void {
 
 getUsers();    // limit = 10
 getUsers(25);  // limit = 25
+
 ```
 
 
@@ -815,7 +819,7 @@ result.toUpperCase();
 
 **`void`** vs **`never`** in Functions
 
-Usage example:
+example:
 ```javascript
 // void — completes, returns nothing useful
 function logError(msg: string): void {
@@ -827,7 +831,7 @@ function throwError(msg: string): never {
   throw new Error(msg);
 }
 
-// Combined — real Express pattern
+// Combined — real Express.js pattern
 function validateToken(token: string | undefined): void {
   if (!token) throwError("No token provided"); 
   // never returns
@@ -840,7 +844,7 @@ function validateToken(token: string | undefined): void {
 
 **`Typing Callbacks & Higher-Order Functions`** 
 
-(A function that receives another function as an argument — both need to be typed.)
+(A function that receives another function as an argument (AND/OR) returns another function; both need to be typed.)
 
 **Typing a callback:**
 
@@ -862,7 +866,7 @@ processUser(1, (name) => {
 
 **Higher-order functions:**
 
-Usage example:
+example:
 ```javascript
 // A function that returns a function
 function createMultiplier(factor: number): (value: number) => number {
@@ -920,12 +924,12 @@ run((name) => {
 
 
 
-<span style = "font-size:25px;"> Concept 20:</span>
+<span style = "font-size:25px;"> Concept 20 (Start of the Phase 4 [Generics]):</span>
 <hr style = " padding:0.01px; background:grey;">
 
 **`What Generics Are & Why They Exist`** 
 
-(generics are like a type placeholder — like a variable but for types.)
+(generics are like a type placeholder, like a variable but for types.)
 
 example:
 ```javascript
@@ -934,7 +938,7 @@ function getFirstItem <T> (arr: T[]): T {
 }
 ```
 
-**T is not a real type. It's a slot — TS fills it in when you call the function:**
+**T is not a real type. It's a slot, TS fills it in when you call the function:**
 
 
 Usage example:
@@ -953,7 +957,7 @@ getFirstItem([{id: 1}, {id: 2}]);
 
 **One function. Works for every type. Full type safety preserved.**
 
-<p>T is just a convention — stands for "Type." You can name it anything: T, K, V, TData, TResponse.</p>
+<p>T is just a convention, stands for "Type." You can name it anything: T, K, V, TData, TResponse.</p>
 
 
 
@@ -1125,7 +1129,7 @@ const response: ApiResponse <User> = {
 
 
 
-<span style = "font-size:25px;"> Concept 25:</span>
+<span style = "font-size:25px;"> Concept 25 (Start of the Phase 5 [Narrowing & Type Gurads]):</span>
 <hr style = " padding:0.01px; background:grey;">
 
 **`typeof`** Narrowing 
@@ -1160,7 +1164,7 @@ function handleId(id: string | number): string {
 
 **`instanceof`** Narrowing 
 
-**It is used when working with classes and objects — not primitives.**
+**It is used when working with classes and objects, not primitives.**
 
 
 Usage example:
@@ -1322,11 +1326,9 @@ function getArea(shape: Circle | Square): number {
 <hr style = " padding:0.01px; background:grey;">
 
 
-`typeof narrowing       → for primitives — string, number, boolean
-`
+`typeof narrowing       → for primitives — string, number, boolean`
 
-`instanceof narrowing   → for class instances
-`
+`instanceof narrowing   → for class instances`
 
 `in narrowing           → for plain objects — check property existence`
 
@@ -1336,10 +1338,10 @@ function getArea(shape: Circle | Square): number {
 `Discriminated unions   → shared literal property tells types apart`
 
 
-<span style = "font-size:25px;"> Concept 36:</span>
+<span style = "font-size:25px;"> Concept 36 (Start of the Phase 7 [Utility Types]):</span>
 <hr style = " padding:0.01px; background:grey;">
 
-**`Partial<T>`** 
+**`Partial <T>`** 
 
 **When updating a user — you don't always send every field. Only the changed ones.**
 
@@ -1368,7 +1370,7 @@ type UpdateUser = Partial<User>;
 <span style = "font-size:25px;"> Concept 37:</span>
 <hr style = " padding:0.01px; background:grey;">
 
-**`Required<T>`**
+**`Required <T>`**
 
 **The exact opposite of Partial. Forces every property to be present, even optional ones.**
 
@@ -1390,7 +1392,7 @@ type StrictConfig = Required<Config>;
 <span style = "font-size:25px;"> Concept 38:</span>
 <hr style = " padding:0.01px; background:grey;">
 
-**`Readonly<T>`** 
+**`Readonly <T>`** 
 
 **Prevents any property from being modified after creation.**
 
@@ -1417,7 +1419,7 @@ user.name = "jane";
 <span style = "font-size:25px;"> Concept 39:</span>
 <hr style = " padding:0.01px; background:grey;">
 
-**`Pick<T, K>`** 
+**`Pick <T, K>`** 
 
 **Having a full interface but only need specific properties from it.**
 
@@ -1438,7 +1440,7 @@ interface UserPreview {
 <span style = "font-size:25px;"> Concept 40:</span>
 <hr style = " padding:0.01px; background:grey;">
 
-**`Omit<T, K>`** 
+**`Omit <T, K>`** 
 
 **Opposite of Pick. Take everything except specified properties.**
 
@@ -1506,9 +1508,9 @@ const permissions: RolePermissions = {
 <span style = "font-size:25px;"> Concept 42:</span>
 <hr style = " padding:0.01px; background:grey;">
 
-**`ReturnType<T> & Parameters<T>`** 
+**`ReturnType <T> & Parameters <T>`** 
 
-**ReturnType<T> — extract what a function returns:**
+**ReturnType < T >  extracts what a function returns:**
 
 Usage example:
 ```javascript
@@ -1543,30 +1545,30 @@ type CreateUserParams = Parameters<typeof createUser>;
 
 **ParametersT = "Give me the types of T's parameters as a tuple."**
 
-<span style = "font-size:25px;"> Phase 6 Map:</span>
+<span style = "font-size:25px;"> Phase 7 Map:</span>
 <hr style = " padding:0.01px; background:grey;">
 
-**Partial < T >      → all properties optional**
+**`Partial < T >      → all properties optional`**
 
-**Required < T >     → all properties mandatory**
+**`Required < T >     → all properties mandatory`**
 
-**Readonly < T >     → all properties locked**
+**`Readonly < T >     → all properties locked`**
 
-**Pick<T, K>      → only these properties**
+**`Pick<T, K>      → only these properties`**
 
-**Omit<T, K>      → everything except these**
+**`Omit<T, K>      → everything except these`**
 
-**Record<K, V>    → object with typed keys and values**
+**`Record<K, V>    → object with typed keys and values`**
 
-**ReturnType< T >   → extract return type from function**
+**`ReturnType< T >   → extract return type from function`**
 
-**Parameters < T >   → extract parameter types from function**
-
-
+**`Parameters < T >   → extract parameter types from function`**
 
 
 
-<span style = "font-size:25px;"> Concept 43:</span>
+
+
+<span style = "font-size:25px;"> Concept 43 (Start of the Phase 8 [Modules & declaration files]):</span>
 <hr style = " padding:0.01px; background:grey;">
 
 **`ES Modules in TypeScript`** 
@@ -1577,13 +1579,13 @@ type CreateUserParams = Parameters<typeof createUser>;
 JS example:
 ```javascript
 
-// Importing
+// For importing
 
 import express from "express";
 import { Router } from "express";
 import type { Request, Response } from "express"; // type-only import
 
-// Exporting
+// For exporting
 
 export const PORT = 3000;
 export function createServer() { ... }
@@ -1646,7 +1648,7 @@ import express from "express";
 // 3. Package has no types anywhere — you write them yourself
 
 import oldPackage from "old-package";
- // no types exist — your job now
+ // no types exist — your job now, quite rare but you can counter such situation if using a legacy package in TS
 
 ```
 
@@ -1731,19 +1733,19 @@ Usage example:
 
 | Option          | What It Does                                                              |
 |-----------------|---------------------------------------------------------------------------|
-| target          | Which JS version to compile to — ES2020 for modern Node                   |
-| module          | Module system — commonjs for Node.js                                     |
-| outDir          | Where compiled JS goes — keep it in /dist                                |
-| rootDir         | Where your TS source lives — keep it in /src                             |
-| strict          | Enables all strict type checks — always true in production                |
+| target          | Which JS version to compile to, ES2020 for modern Node                   |
+| module          | Module system, commonjs for Node.js but modern ts works with module type                                     |
+| outDir          | Where compiled JS goes (after tsc compilation command), keep it in /dist                                |
+| rootDir         | Where your TS source lives, keep it in /src                             |
+| strict          | Enables all strict type checks, always true in production                |
 | esModuleInterop | Lets you import express from "express" instead of import * as express    |
-| skipLibCheck    | Skips type checking of .d.ts files — speeds up compilation               |
+| skipLibCheck    | Skips type checking of .d.ts files, speeds up compilation               |
 
 
 
-**strict: true — What It Actually Enables**
+**strict: true What It Actually Enables**
 
-**One flag — enables all of these simultaneously:**
+**One flag: enables all of these simultaneously:**
 
 
 `strictNullChecks      → null and undefined are not assignable to other types`
@@ -1757,7 +1759,7 @@ Usage example:
 
 `strictPropertyInitialization → class properties must be initialized`
 
-<span style = "font-size:25px;"> Phase 7 Map:</span>
+<span style = "font-size:25px;"> Phase 8 Map:</span>
 <hr style = " padding:0.01px; background:grey;">
 
 
@@ -1772,7 +1774,7 @@ Usage example:
 
 
 
-<span style = "font-size:25px;"> Concept 47:</span>
+<span style = "font-size:25px;"> Concept 47 (Start of the Phase 10 [TS in Node.js/Express.js (optional)]):</span>
 <hr style = " padding:0.01px; background:grey;">
 
 **Typing Express `Request`, `Response`, `NextFunction`** 
@@ -1971,7 +1973,7 @@ const port = Number(process.env.PORT) || 3000;
 
 **Validated config object (production standard):**
 
-Usage example:
+example (pattern 2):
 ```javascript
 
 interface EnvConfig {
@@ -2102,7 +2104,7 @@ function errorHandler(
 ```
 
 
-<span style = "font-size:25px;"> Concept 8 Map:</span>
+<span style = "font-size:25px;"> Phase 10 Map:</span>
 <hr style = " padding:0.01px; background:grey;">
 
 
