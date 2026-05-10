@@ -135,7 +135,7 @@
 + **`keyof`** & **`typeof`** operators
 ---
 
-### PHASE 10 *--TS in Node.js/Express.js*:
+### PHASE 10 *--TS in Node.js/Express.js (optional)*:
 + Typing Express **`Request`**, **`Response`**, **`NextFunction`**
 
 + Extending Express types (custom **`req.user`** etc.)
@@ -1771,4 +1771,350 @@ Usage example:
 
 
 
+
+<span style = "font-size:25px;"> Concept 47:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**Typing Express `Request`, `Response`, `NextFunction`** 
+
+**After installing @types/express — these three types become available:**
+
+Usage example:
+```javascript
+
+import { Request, Response, NextFunction } from "express";
+
+function getUser(req: Request, res: Response): void {
+  const id = req.params.id;           // string
+  const body = req.body;              // any — by default
+  res.status(200).json({ id });
+}
+
+```
+
+
+**Typing req.params and req.body precisely:**
+
+
+Usage example:
+```javascript
+
+// Define the shape of params
+interface UserParams {
+  id: string; // params are always strings in Express
+}
+
+// Define the shape of request body
+interface CreateUserBody {
+  name: string;
+  email: string;
+  password: string;
+}
+
+// Pass them as generics to Request
+function createUser(
+  req: Request<{}, {}, CreateUserBody>,
+  res: Response
+): void {
+  const { name, email, password } = req.body; // fully typed
+  res.status(201).json({ name });
+}
+
+```
+
+
+**`Request` generic signature:**
+
+Usage example:
+```javascript
+
+Request <Params, ResBody, ReqBody, Query>
+
+```
+
+
+<span style = "font-size:25px;"> Concept 48:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**Extending `Express Types`** 
+
+**The Problem:**
+
+**When adding user data to req in auth middleware:**
+
+example:
+```javascript
+
+req.user = { id: 1, role: "admin" }; 
+//  TS ERROR
+// Property 'user' does not exist on type 'Request'
+
+```
+
+
+
+**For fixing Declaration Merging is done**
+
+
+**Creating a file: src/types/express.d.ts**
+
+
+Usage example:
+```javascript
+
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        id: number;
+        role: string;
+      };
+    }
+  }
+}
+
+```
+
+
+**Now throughout the project:**
+
+Usage example:
+```javascript
+
+req.user?.id;   // TS knows it exists
+req.user?.role; // fully typed
+
+```
+
+<span style = "font-size:25px;"> Concept 49:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**Typing `Async/Await`  &  `Promises`:** 
+
+**Basic async function:**
+
+ example:
+```javascript
+
+async function getUser(id: number): Promise <User> {
+  const user = await db.query(`SELECT * FROM users WHERE id = ?`, [id]);
+  return user;
+}
+
+```
+
+**Promise< User > = this function eventually resolves to a User.**
+
+
+
+**With Express:**
+
+Usage example:
+```javascript
+
+async function getUser(req: Request, res: Response): Promise<void> {
+  const user = await userService.findById(Number(req.params.id));
+  res.json(user);
+}
+
+```
+
+
+**Return type is Promise< void > — not just void — because it's async.**
+
+**Handling async errors properly:**
+
+Usage example:
+```javascript
+
+async function getUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const user = await userService.findById(Number(req.params.id));
+    res.json(user);
+  } catch (error) {
+    next(error);
+    // pass to Express error handler
+  }
+}
+
+```
+
+<span style = "font-size:25px;"> Concept 50:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`Typing Environment Variables`** 
+
+
+**The problem we face:**
+
+Usage example:
+```javascript
+
+const port = process.env.PORT;
+ // type: string | undefined
+
+```
+
+
+**process.env always returns string | undefined. Passing it to a function expecting a number — TS error.**
+
+
+**Solution:**
+
+example (pattern 1):
+```javascript
+
+const port = Number(process.env.PORT) || 3000;
+
+```
+
+
+**Validated config object (production standard):**
+
+Usage example:
+```javascript
+
+interface EnvConfig {
+  PORT: number;
+  DB_HOST: string;
+  DB_PASSWORD: string;
+  JWT_SECRET: string;
+}
+
+function loadEnv(): EnvConfig {
+  const { PORT, DB_HOST, DB_PASSWORD, JWT_SECRET } = process.env;
+
+  if (!PORT || !DB_HOST || !DB_PASSWORD || !JWT_SECRET) {
+    throw new Error("Missing required environment variables");
+  }
+
+  return {
+    PORT: Number(PORT),
+    DB_HOST,
+    DB_PASSWORD,
+    JWT_SECRET
+  };
+}
+
+const env = loadEnv();
+
+// fully typed, validated at startup
+
+```
+
+<span style = "font-size:25px;"> Concept 51:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`Typing MySQL Query Results`** 
+
+**MySQL2 returns any by default. You fix that with generics.**
+
+Usage example:
+```javascript
+
+import { Pool, RowDataPacket } from "mysql2/promise";
+
+interface User extends RowDataPacket {
+  id: number;
+  name: string;
+  email: string;
+}
+
+async function getUserById(pool: Pool, id: number): Promise<User | null> {
+  const [rows] = await pool.query<User[]>(
+    "SELECT * FROM users WHERE id = ?",
+    [id]
+  );
+  return rows[0] ?? null;
+}
+
+```
+
+
+<span style = "font-size:25px;"> Concept 52:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+**`Error Handling Patterns in TypeScript`** 
+
+**The problem we face:**
+
+Usage example:
+```javascript
+
+try {
+  await riskyOperation();
+} catch (error) {
+  error.message; 
+  // TS ERROR — error is 'unknown' in strict mode
+}
+
+```
+**`⚠️ Important:`**
+
+**In strict TS — caught errors are unknown. You must narrow before using.**
+
+**Pattern 1: `instanceof`**
+
+Usage example:
+```javascript
+
+try {
+  await riskyOperation();
+} catch (error) {
+  if (error instanceof Error) {
+    console.log(error.message); // works!
+  }
+}
+
+```
+
+**Pattern 2  Custom error classes (production standard):**
+
+Usage example:
+```javascript
+
+class AppError extends Error {
+  constructor(
+    public message: string,
+    public statusCode: number
+  ) {
+    super(message);
+    this.name = "AppError";
+  }
+}
+
+// Express error handler
+function errorHandler(
+  error: unknown,
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void {
+  if (error instanceof AppError) {
+    res.status(error.statusCode).json({ message: error.message });
+    return;
+  }
+
+  res.status(500).json({ message: "Internal server error" });
+}
+
+
+```
+
+
+<span style = "font-size:25px;"> Concept 8 Map:</span>
+<hr style = " padding:0.01px; background:grey;">
+
+
+**`Typing Request/Response  → Request <Params, ResBody, ReqBody, Query>`**
+
+**`Extending Express types  → declaration merging via .d.ts — req.user, req.auth`**
+
+**`Async/Await typing       → Promise <T> as return type`**
+
+**`Environment variables    → validate at startup, return typed config object`**
+
+**`MySQL query results      → extend RowDataPacket, pass as generic to query<T[]>`**
+
+**`Error handling           → unknown in catch, instanceof narrowing, custom error classes`**
 
